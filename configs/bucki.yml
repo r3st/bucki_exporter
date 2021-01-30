@@ -1,2 +1,3 @@
 urls:
- - https://api.github.com/repos/r3st/bucki_exporter/releases/latest
+  - name: app1
+    address: http://app1:8080/q/health

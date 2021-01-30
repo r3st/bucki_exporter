@@ -13,11 +13,12 @@ import (
 func main() {
 	var cfg config.Config
 
-	app := kingpin.New("bucki_exporter", "JSON-response exporter")
+	app := kingpin.New("bucki_exporter", "microprofile health exporter")
 	app.Flag("web.listen-address", "The address to listen on for HTTP requests.").Default(":9889").StringVar(&cfg.Port)
 	app.Flag("web.metrics-path", "").Default("/metrics").StringVar(&cfg.MetricsPath)
 	app.Flag("client.timeout", "http client timeout to stop fetching URLs").Default("5").IntVar(&cfg.ClientTimeout)
 	app.Flag("config.path", "path to config file").Default("configs/bucki.yml").StringVar(&cfg.ConfigPath)
+	app.Flag("only.bucki-metrics", "export only collect microprofile health metrics").BoolVar(&cfg.BuckiMetrics)
 	app.HelpFlag.Short('h')
 	app.Version(version.Print("bucki_exporter"))
 

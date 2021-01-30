@@ -22,25 +22,28 @@ var (
 
 // Start exporter webserver
 func Start(cfg *config.Config) {
+	var hps reader.HealthPoints
 
 	router := mux.NewRouter()
-	router.HandleFunc(cfg.MetricsPath, metricsHandler(cfg)).Methods(http.MethodGet)
+	router.HandleFunc(cfg.MetricsPath, metricsHandler(cfg, &hps)).Methods(http.MethodGet)
 	router.HandleFunc("/", rootHandler(cfg)).Methods(http.MethodGet)
 
 	http.ListenAndServe(cfg.Port, router)
 }
 
-func metricsHandler(cfg *config.Config) http.HandlerFunc {
+func metricsHandler(cfg *config.Config, hps *reader.HealthPoints) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buckiScraped.Inc()
 
 		registry := prometheus.NewRegistry()
-		registry.MustRegister(
-			prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
-			prometheus.NewGoCollector(),
-			buckiScraped,
-		)
-		reader.ProceedUrls(cfg.Urls, registry)
+		if !cfg.BuckiMetrics {
+			registry.MustRegister(
+				prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+				prometheus.NewGoCollector(),
+				buckiScraped,
+			)
+	    }
+		reader.ProceedUrls(cfg, hps, registry)
 
 		promhttp.HandlerFor(
 			registry, promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError},
@@ -56,7 +59,7 @@ func rootHandler(cfg *config.Config) http.HandlerFunc {
 		<body>
 		<h1>Bucki Exporter</h1>
 		`))
-		fmt.Fprintf(w, "<p><a href=\"%s\">Metrics</a></p>", html.EscapeString(cfg.MetricsPath))
+		fmt.Fprintf(w, "<p><a href=\".%s\">Metrics</a></p>", html.EscapeString(cfg.MetricsPath))
 		fmt.Fprint(w, "<h2>Current checked URLs</h2>")
 
 		for _, url := range cfg.Urls {
