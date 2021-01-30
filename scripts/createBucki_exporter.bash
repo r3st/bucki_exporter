@@ -2,7 +2,7 @@
 
 rm -Rf /tmp/bucki_exporter
 
-git clone https://github.com/r3st/bucki_exporter.git
+git clone https://github.com/r3st/bucki_exporter.git /tmp/bucki_exporter
 
 cd /tmp/bucki_exporter
 
